@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Healix - Medical Insights</title>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="/static/Css/home.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <i data-lucide="brain" class="logo-icon"></i>
+        <span class="logo-text">Healix</span>
+      </div>
+      
+      <div class="nav-links">
+        <a href="#" class="nav-link active">Home</a>
+        <a href="#" class="nav-link">About Us</a>
+        <a href="#" class="nav-link">Pricing</a>
+        <a href="#" class="nav-link">Contact Us</a>
+        <a href="#" class="nav-link">Blog</a>
+        <button class="btn btn-primary">Get Started</button>
+      </div>
+
+      <button class="mobile-menu-btn">
+        <i data-lucide="menu" class="menu-icon"></i>
+        <i data-lucide="x" class="close-icon hidden"></i>
+      </button>
+    </div>
+
+    <div class="mobile-menu hidden">
+      <a href="#" class="mobile-link active">Home</a>
+      <a href="" class="mobile-link">About Us</a>
+      <a href="#" class="mobile-link">Pricing</a>
+      <a href="#" class="mobile-link">Contact Us</a>
+      <a href="#" class="mobile-link">Blog</a>
+      <button class="btn btn-primary mobile-btn">Get Started</button>
+    </div>
+  </nav>
+
+  <main>
+    <div class="hero">
+      <div class="hero-container">
+        <div class="hero-content">
+          <h1 class="hero-title">Advanced Medical Insights for Optimal Patient Care</h1>
+          <p class="hero-text">
+            Leveraging the power of deep learning, our tools provide accurate and 
+            comprehensive analysis of patient data post-medical checkups.
+          </p>
+          <div class="hero-buttons">
+            <button class="btn btn-primary">
+              Get Started
+              <i data-lucide="chevron-right" class="btn-icon"></i>
+            </button>
+            <button class="btn btn-outline">Learn more</button>
+          </div>
+        </div>
+        
+        <div class="hero-image-container">
+          <div class="image-slideshow">
+            <video 
+            src="/videos/1.mp4"
+            class="hero-video active"
+            data-organ="brain"
+            autoplay
+            muted
+            loop
+            playsinline
+          ></video>
+          <video 
+            src="/videos/2.mp4"
+            class="hero-video"
+            data-organ="heart"
+            autoplay
+            muted
+            loop
+            playsinline
+          ></video>
+          <video 
+            src="/videos/3.mp4"
+            class="hero-video"
+            data-organ="stomach"
+            autoplay
+            muted
+            loop
+            playsinline
+          ></video>
+          <video 
+            src="/videos/4.mp4"
+            class="hero-video"
+            data-organ="lungs"
+            autoplay
+            muted
+            loop
+            playsinline
+          ></video>
+          <video 
+            src="/videos/5.mp4"
+            class="hero-video"
+            data-organ="system"
+            autoplay
+            muted
+            loop
+            playsinline
+          ></video>
+          </div>
+          
+          <div class="organ-selector">
+            <div class="organ-buttons">
+              <button class="organ-btn active" data-organ="brain">
+                <i data-lucide="brain"></i>
+              </button>
+              <button class="organ-btn" data-organ="heart">
+                <i data-lucide="heart"></i>
+              </button>
+              <button class="organ-btn" data-organ="stomach">
+                <i data-lucide="activity"></i>
+              </button>
+              <button class="organ-btn" data-organ="lungs">
+                <i data-lucide="settings"></i>
+              </button>
+              <button class="organ-btn" data-organ="system">
+                <i data-lucide="stethoscope"></i>
+              </button>
+            </div>
+            
+            <div class="organ-info">
+              <h3 class="organ-title">Brain</h3>
+              <p class="organ-description">Temporal lobe analysis and neural activity monitoring</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section class="features">
+      <div class="features-container">
+        <div class="section-header">
+          <span class="section-badge">Features</span>
+          <h2 class="section-title">Advanced AI-Powered Medical Analysis</h2>
+          <p class="section-subtitle">Revolutionizing healthcare with cutting-edge artificial intelligence</p>
+        </div>
+
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i data-lucide="brain-circuit"></i>
+            </div>
+            <h3>Neural Analysis</h3>
+            <p>Advanced brain mapping and neural activity monitoring with real-time insights</p>
+            <div class="feature-stats">
+              <div class="stat">
+                <span class="stat-value">99.8%</span>
+                <span class="stat-label">Accuracy</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">&lt;2s</span>
+                <span class="stat-label">Processing</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i data-lucide="heart-pulse"></i>
+            </div>
+            <h3>Cardiac Monitoring</h3>
+            <p>Real-time heart rhythm analysis and early anomaly detection system</p>
+            <div class="feature-stats">
+              <div class="stat">
+                <span class="stat-value">24/7</span>
+                <span class="stat-label">Monitoring</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">100k+</span>
+                <span class="stat-label">Patterns</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i data-lucide="microscope"></i>
+            </div>
+            <h3>Lab Analysis</h3>
+            <p>Automated laboratory results interpretation with predictive insights</p>
+            <div class="feature-stats">
+              <div class="stat">
+                <span class="stat-value">50+</span>
+                <span class="stat-label">Parameters</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">95%</span>
+                <span class="stat-label">Time Saved</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i data-lucide="file-text"></i>
+            </div>
+            <h3>Smart Reports</h3>
+            <p>Comprehensive medical reports with AI-powered recommendations</p>
+            <div class="feature-stats">
+              <div class="stat">
+                <span class="stat-value">5M+</span>
+                <span class="stat-label">Reports</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">98%</span>
+                <span class="stat-label">Accuracy</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="process">
+      <div class="process-container">
+        <div class="section-header">
+          <span class="section-badge">How It Works</span>
+          <h2 class="section-title">Streamlined Medical Analysis Process</h2>
+          <p class="section-subtitle">Experience healthcare innovation in four simple steps</p>
+        </div>
+
+        <div class="process-steps">
+          <div class="process-step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <div class="step-icon">
+                <i data-lucide="upload-cloud"></i>
+              </div>
+              <h3>Data Upload</h3>
+              <p>Securely upload patient data and medical records to our HIPAA-compliant platform</p>
+            </div>
+          </div>
+
+          <div class="process-step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <div class="step-icon">
+                <i data-lucide="scan-face"></i>
+              </div>
+              <h3>AI Analysis</h3>
+              <p>Our advanced AI algorithms analyze the data for patterns and potential concerns</p>
+            </div>
+          </div>
+
+          <div class="process-step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <div class="step-icon">
+                <i data-lucide="clipboard-check"></i>
+              </div>
+              <h3>Report Generation</h3>
+              <p>Comprehensive reports are generated with detailed insights and recommendations</p>
+            </div>
+          </div>
+
+          <div class="process-step">
+            <div class="step-number">4</div>
+            <div class="step-content">
+              <div class="step-icon">
+                <i data-lucide="stethoscope"></i>
+              </div>
+              <h3>Expert Review</h3>
+              <p>Medical professionals review and validate the AI-generated insights</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="medical-analysis">
+      <div class="features-container">
+        <div class="section-header">
+          <span class="section-badge">Medical Reports</span>
+          <h2 class="section-title">Smart Medical Document Analysis</h2>
+          <p class="section-subtitle">Advanced OCR and LLM powered medical report interpretation</p>
+        </div>
+    
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i data-lucide="file-text"></i>
+            </div>
+            <h3>OCR Processing</h3>
+            <p>Automated extraction of medical data from prescriptions and reports using advanced OCR technology</p>
+            <div class="feature-stats">
+              <div class="stat">
+                <span class="stat-value">99%</span>
+                <span class="stat-label">Accuracy</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">&lt;30s</span>
+                <span class="stat-label">Processing</span>
+              </div>
+            </div>
+          </div>
+    
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i data-lucide="brain-circuit"></i>
+            </div>
+            <h3>LLM Analysis</h3>
+            <p>Context-aware interpretation of medical terms and conditions using advanced language models</p>
+            <div class="feature-stats">
+              <div class="stat">
+                <span class="stat-value">10M+</span>
+                <span class="stat-label">Terms</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">98%</span>
+                <span class="stat-label">Precision</span>
+              </div>
+            </div>
+          </div>
+    
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i data-lucide="history"></i>
+            </div>
+            <h3>Medical Timeline</h3>
+            <p>Interactive visualization of your medical history and health progression over time</p>
+            <div class="feature-stats">
+              <div class="stat">
+                <span class="stat-value">5 Yr</span>
+                <span class="stat-label">History</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">100%</span>
+                <span class="stat-label">Coverage</span>
+              </div>
+            </div>
+          </div>
+    
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i data-lucide="shield-check"></i>
+            </div>
+            <h3>Secure Storage</h3>
+            <p>HIPAA-compliant encryption and secure storage of all medical documents and personal data</p>
+            <div class="feature-stats">
+              <div class="stat">
+                <span class="stat-value">256bit</span>
+                <span class="stat-label">Encryption</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">24/7</span>
+                <span class="stat-label">Security</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Logo Scroll Section -->
+    <section class="logo-scroll">
+      <div class="section-header">
+        <span class="section-badge">Trusted Partners</span>
+        <h2 class="section-title">Leading Healthcare Organizations Trust Healix</h2>
+      </div>
+      <div class="logos-container">
+        <div class="logos-slide">
+          <img src="/images/l1.svg" alt="Healthcare Partner">
+          <img src="/images/l7.png" alt="Healthcare Partner">
+          <img src="/images/l3.png" alt="Healthcare Partner">
+          <img src="/images/l4.png" alt="Healthcare Partner">
+          <img src="/images/l5.png" alt="Healthcare Partner">
+          <img src="/images/l6.svg" alt="Healthcare Partner">
+        </div>
+        <div class="logos-slide">
+          <!-- Duplicate for infinite scroll -->
+          <img src="/images/l1.svg" alt="Healthcare Partner">
+          <img src="/images/l7.png" alt="Healthcare Partner">
+          <img src="/images/l3.png" alt="Healthcare Partner">
+          <img src="/images/l4.png" alt="Healthcare Partner">
+          <img src="/images/l5.png" alt="Healthcare Partner">
+          <img src="/images/l6.svg" alt="Healthcare Partner">
+          </div>
+      </section>
+
+    <!-- Contact Section -->
+    <section class="contact">
+      <div class="contact-container">
+        <div class="section-header">
+          <span class="section-badge">Get In Touch</span>
+          <h2 class="section-title">Contact Us</h2>
+          <p class="section-subtitle">Have questions? We're here to help with your healthcare journey</p>
+        </div>
+     
+        <div class="contact-content">
+          <div class="contact-info">
+            <div class="contact-card">
+              <div class="card-icon">
+                <i data-lucide="mail"></i>
+              </div>
+              <h3>Email Us</h3>
+              <a href="mailto:support@healix.ai">support@healix.ai</a>
+            </div>
+     
+            <div class="contact-card">
+              <div class="card-icon">
+                <i data-lucide="phone"></i>
+              </div>
+              <h3>Call Us</h3>
+              <a href="tel:+18001234567">+1 (800) 123-4567</a>
+            </div>
+     
+            <div class="contact-card">
+              <div class="card-icon">
+                <i data-lucide="map-pin"></i>
+              </div>
+              <h3>Visit Us</h3>
+              <p>123 Healthcare Ave, Medical District, CA 90210</p>
+            </div>
+          </div>
+     
+          <form class="contact-form">
+            <div class="form-row">
+              <input type="text" placeholder="Your Name" required>
+              <input type="email" placeholder="Your Email" required>
+            </div>
+            
+            <select required>
+              <option value="" disabled selected>Select Department</option>
+              <option value="support">Technical Support</option>
+              <option value="sales">Sales</option>
+              <option value="partnership">Partnership</option>
+            </select>
+     
+            <textarea placeholder="Your Message" required rows="5"></textarea>
+            
+            <button type="submit" class="btn btn-primary">
+              Send Message
+              <i data-lucide="send" class="btn-icon"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+     </section>
+
+      <footer class="footer">
+        <div class="footer-container">
+          <div class="footer-content">
+            <div class="footer-logo">
+              <i data-lucide="brain" class="logo-icon"></i>
+              <span class="logo-text">Healix</span>
+            </div>
+            <p class="footer-description">Advanced AI-powered health management platform for personalized healthcare insights</p>
+          </div>
+          
+          <div class="footer-links">
+            <div class="footer-section">
+              <h4>Product</h4>
+              <a href="#">Features</a>
+              <a href="#">How it Works</a>
+              <a href="#">Security</a>
+              <a href="#">Pricing</a>
+            </div>
+            
+            <div class="footer-section">
+              <h4>Company</h4>
+              <a href="#">About Us</a>
+              <a href="#">Contact</a>
+              <a href="#">Privacy Policy</a>
+              <a href="#">Terms of Service</a>
+            </div>
+            
+            <div class="footer-section">
+              <h4>Resources</h4>
+              <a href="#">Documentation</a>
+              <a href="#">Blog</a>
+              <a href="#">Support</a>
+              <a href="#">FAQ</a>
+            </div>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>&copy; 2024 Healix. All rights reserved.</p>
+        </div>
+      </footer>
+    </main>
+    <script src="/static/Js/Script.js"></script>
+  <script>
+  </script>
+</body>
+</html>

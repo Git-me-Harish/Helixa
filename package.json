@@ -1,0 +1,19 @@
+{
+  "name": "healix",
+  "version": "1.0.0",
+  "description": "AI Enhanced Precision Medical Support System",
+  "main": "server.js",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.21.2",
+    "healix": "file:",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^7.0.0"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

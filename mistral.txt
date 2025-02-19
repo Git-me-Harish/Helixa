@@ -1,0 +1,137 @@
+# main.py
+
+from fastapi import FastAPI, Request, Form, Response
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+from fastapi.encoders import jsonable_encoder
+from transformers import AutoModel, AutoTokenizer
+from qdrant_client import QdrantClient
+from langchain import PromptTemplate
+from langchain.chains import RetrievalQA
+from langchain_community.embeddings import SentenceTransformerEmbeddings
+from langchain_community.vectorstores import Qdrant
+from langchain.llms.base import LLM
+import torch
+import os
+import json
+
+# Custom LLM class to wrap the Hugging Face model
+class BioMistralLLM(LLM):
+    def __init__(self, model_name):
+        super().__init__()
+        self.model = AutoModel.from_pretrained(model_name)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.model.to(self.device)
+
+    def _call(self, prompt: str, stop=None) -> str:
+        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
+        with torch.no_grad():
+            outputs = self.model.generate(
+                inputs["input_ids"],
+                max_length=2048,
+                temperature=0.3,
+                top_p=1,
+                pad_token_id=self.tokenizer.eos_token_id
+            )
+        response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        return response
+
+    @property
+    def _identifying_params(self):
+        return {"name": "BioMistralLLM"}
+
+    @property
+    def _llm_type(self):
+        return "biomistral"
+
+app = FastAPI()
+
+templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Initialize the custom LLM
+llm = BioMistralLLM("MaziyarPanahi/BioMistral-7B-GGUF")
+print("LLM Initialized....")
+
+prompt_template = """Use the following pieces of information to answer the user's question.
+If you don't know the answer, just say that you don't know, don't try to make up an answer.
+
+Context: {context}
+Question: {question}
+
+Only return the helpful answer. Answer must be detailed and well explained.
+Helpful answer:
+"""
+
+embeddings = SentenceTransformerEmbeddings(model_name="NeuML/pubmedbert-base-embeddings")
+
+url = "http://localhost:6333"
+client = QdrantClient(url=url, prefer_grpc=False)
+db = Qdrant(client=client, embeddings=embeddings, collection_name="vector_db")
+
+prompt = PromptTemplate(template=prompt_template, input_variables=['context', 'question'])
+retriever = db.as_retriever(search_kwargs={"k":1})
+
+@app.get("/", response_class=HTMLResponse)
+async def read_root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+@app.post("/get_response")
+async def get_response(query: str = Form(...)):
+    chain_type_kwargs = {"prompt": prompt}
+    qa = RetrievalQA.from_chain_type(
+        llm=llm,
+        chain_type="stuff",
+        retriever=retriever,
+        return_source_documents=True,
+        chain_type_kwargs=chain_type_kwargs,
+        verbose=True
+    )
+    response = qa(query)
+    answer = response['result']
+    source_document = response['source_documents'][0].page_content
+    doc = response['source_documents'][0].metadata['source']
+    response_data = jsonable_encoder(json.dumps({
+        "answer": answer,
+        "source_document": source_document,
+        "doc": doc
+    }))
+    
+    return Response(response_data)
+
+
+# ingest.py
+
+
+import os
+from langchain_community.embeddings import SentenceTransformerEmbeddings
+from langchain_community.document_loaders import UnstructuredFileLoader, DirectoryLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.vectorstores import Qdrant
+
+embeddings = SentenceTransformerEmbeddings(model_name="NeuML/pubmedbert-base-embeddings")
+
+print(embeddings)
+
+loader = DirectoryLoader('data/', glob="**/*.pdf", show_progress=True, loader_cls=UnstructuredFileLoader)
+
+documents = loader.load()
+
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=700, chunk_overlap=70)
+
+texts = text_splitter.split_documents(documents)
+
+print(texts[1])
+
+url = "http://localhost:6333"
+qdrant = Qdrant.from_documents(
+    texts,
+    embeddings,
+    url=url,
+    prefer_grpc=False,
+    collection_name="vector_db"
+)
+
+print("Vector DB Successfully Created!")

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-white">
+    <div class="flex flex-col md:flex-row min-h-screen">
+        <div class="w-full md:w-1/2 p-8 overflow-y-auto">
+            <div class="max-w-md mx-auto space-y-8">
+                <div class="text-center">
+                    <img src="/images/logo2.png" alt="Logo" class="mx-auto h-20 w-20 rounded-full">
+                    <h2 class="text-3xl font-bold text-gray-900">Create Account</h2>
+                    <p class="mt-2 text-gray-600">Join our community and explore endless possibilities</p>
+                </div>
+
+                <form class="space-y-6">
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-xl font-medium text-gray-900">Personal Information</h3>
+                            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">First Name</label>
+                                    <input type="text" required class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Last Name</label>
+                                    <input type="text" required class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Email</label>
+                            <input type="email" required class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </div>
+
+                       <!-- Password section in the form -->
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Password</label>
+                                <input type="password" id="password" required 
+                                class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                                <input type="password" id="confirmPassword" required 
+                                class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="text-sm font-medium text-gray-700">Password Requirements:</h4>
+                            <ul class="mt-2 text-sm text-gray-600 space-y-1">
+                                <li id="lengthCheck" class="flex items-center">
+                                    <span class="mr-2">•</span>At least 8 characters
+                                </li>
+                                <li id="uppercaseCheck" class="flex items-center">
+                                    <span class="mr-2">•</span>At least one uppercase letter
+                                </li>
+                                <li id="lowercaseCheck" class="flex items-center">
+                                    <span class="mr-2">•</span>At least one lowercase letter
+                                </li>
+                                <li id="numberCheck" class="flex items-center">
+                                    <span class="mr-2">•</span>At least one number
+                                </li>
+                                <li id="specialCheck" class="flex items-center">
+                                    <span class="mr-2">•</span>At least one special character (!@#$%^&*)
+                                </li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-medium text-gray-900">Additional Information</h3>
+                            <div class="mt-4 space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Phone Number</label>
+                                    <input type="tel" required class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Company/Organization</label>
+                                    <input type="text" required class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center">
+                            <input type="checkbox" required class="h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                            <label class="ml-2 text-sm text-gray-700">
+                                I agree to the Terms of Service and Privacy Policy
+                            </label>
+                        </div>
+
+                        <button type="submit" 
+                        class="w-full bg-indigo-600 text-white p-3 rounded-lg hover:bg-indigo-700 transition-colors">
+                        Create Account
+                    </button>
+                    <p class="text-sm text-gray-600 text-center">Already have an account? <a href="Login.html" class="font-medium text-indigo-600 hover:text-indigo-500 transition-colors">Log in</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Video Section -->
+        <div class="hidden md:block w-1/2 bg-gray-900 relative">
+            <video class="w-full h-full object-cover" autoplay muted loop playsinline>
+                <source src="../public/V1.mp4" type="video/mp4">
+            </video>
+            <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                <div class="text-center text-white p-8">
+                    <h2 class="text-4xl font-bold mb-4"></h2>
+                    <p class="text-xl"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirmPassword');
+        const lengthCheck = document.getElementById('lengthCheck');
+        const uppercaseCheck = document.getElementById('uppercaseCheck');
+        const lowercaseCheck = document.getElementById('lowercaseCheck');
+        const numberCheck = document.getElementById('numberCheck');
+        const specialCheck = document.getElementById('specialCheck');
+
+    function validatePassword() {
+        const pass = password.value;
+        
+        // Password requirements checks
+        const hasRequiredLength = pass.length >= 8;
+        const hasUppercase = /[A-Z]/.test(pass);
+        const hasLowercase = /[a-z]/.test(pass);
+        const hasNumber = /[0-9]/.test(pass);
+        const hasSpecialChar = /[!@#$%^&*]/.test(pass);
+
+        // Update visual indicators
+        lengthCheck.style.color = hasRequiredLength ? '#059669' : '#6B7280';
+        uppercaseCheck.style.color = hasUppercase ? '#059669' : '#6B7280';
+        lowercaseCheck.style.color = hasLowercase ? '#059669' : '#6B7280';
+        numberCheck.style.color = hasNumber ? '#059669' : '#6B7280';
+        specialCheck.style.color = hasSpecialChar ? '#059669' : '#6B7280';
+
+        // Return true only if all requirements are met
+        return hasRequiredLength && hasUppercase && hasLowercase && 
+               hasNumber && hasSpecialChar;
+    }
+
+    // Validate password on input
+    password.addEventListener('input', validatePassword);
+
+    // Validate password confirmation
+    confirmPassword.addEventListener('input', () => {
+        const isMatch = password.value === confirmPassword.value;
+        const allRequirementsMet = validatePassword();
+        
+        // Only show success state if both passwords match AND all requirements are met
+        confirmPassword.style.borderColor = (isMatch && allRequirementsMet) ? 
+            '#059669' : '#EF4444';
+    });
+
+    // Add form submit event listener
+    document.querySelector('form').addEventListener('submit', function(e) {
+        if (!validatePassword() || password.value !== confirmPassword.value) {
+            e.preventDefault();
+            alert('Please ensure all password requirements are met and passwords match.');
+        }
+    });
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!validatePassword()) return;
+    
+        try {
+            const response = await axios.post('/api/signup', {
+                firstName: document.querySelector('[name="firstName"]').value,
+                lastName: document.querySelector('[name="lastName"]').value,
+                email: document.querySelector('[name="email"]').value,
+                password: document.getElementById('password').value,
+                phoneNumber: document.querySelector('[name="phoneNumber"]').value,
+                company: document.querySelector('[name="company"]').value
+            });
+            
+            window.location.href = '/login.html';
+        } catch (error) {
+            alert(error.response?.data?.message || 'Registration failed');
+        }
+    });
+    
+    </script>
+</body>
+</html>
