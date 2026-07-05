@@ -1,0 +1,56 @@
+# ─── Web framework ────────────────────────────────────────────────────────────
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+python-multipart==0.0.12
+# httpx 0.27.2: satisfies groq (>=0.23,<1) AND ollama 0.4.4 (<0.28,>=0.27)
+httpx==0.27.2
+
+# ─── Database ─────────────────────────────────────────────────────────────────
+sqlalchemy==2.0.36
+asyncpg==0.30.0
+alembic==1.14.0
+psycopg2-binary==2.9.10
+
+# ─── Auth & Security ──────────────────────────────────────────────────────────
+python-jose[cryptography]==3.3.0
+# passlib is NOT used — we call bcrypt directly to avoid passlib/bcrypt 5.x incompatibility
+bcrypt>=4.0.0
+pydantic[email]==2.10.3
+pydantic-settings==2.6.1
+
+# ─── AI: Groq ─────────────────────────────────────────────────────────────────
+groq==0.13.0
+
+# ─── AI: Ollama (local fallback) ──────────────────────────────────────────────
+ollama==0.4.4
+
+# ─── Vector DB: Qdrant local mode ─────────────────────────────────────────────
+qdrant-client==1.12.1
+sentence-transformers==3.3.1
+
+# ─── Clinical NLP ─────────────────────────────────────────────────────────────
+# scispaCy model install (run after pip install):
+#   pip install scispacy
+#   pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_bc5cdr_md-0.5.4.tar.gz
+#   python -m spacy download en_core_web_sm
+spacy==3.8.3
+medspacy==1.3.1
+
+# ─── OCR ──────────────────────────────────────────────────────────────────────
+# EasyOCR replaces PaddleOCR — works on Python 3.12, no separate engine install
+easyocr==1.7.2
+pdf2image==1.17.0
+pdfminer.six==20231228
+Pillow==11.0.0
+opencv-python-headless==4.10.0.84
+
+# ─── Speech: faster-whisper ───────────────────────────────────────────────────
+faster-whisper==1.1.0
+
+# ─── Utilities ────────────────────────────────────────────────────────────────
+python-dotenv==1.0.1
+aiofiles==24.1.0
+numpy==1.26.4
+
+# ─── Rate limiting ────────────────────────────────────────────────────────────
+slowapi==0.1.9
