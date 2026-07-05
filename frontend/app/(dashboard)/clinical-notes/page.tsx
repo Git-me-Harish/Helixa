@@ -162,7 +162,7 @@ function NoteModal({ note, onClose }: { note?: SOAPNote; onClose: () => void }) 
 
 function NoteCard({ note, onEdit, onDelete }: { note: SOAPNote; onEdit: () => void; onDelete: () => void }) {
   const [expanded, setExpanded] = useState(false);
-  const sections = SOAP_SECTIONS.filter(s => (note as Record<string, string | null>)[s.key]);
+  const sections = SOAP_SECTIONS.filter(s => note[s.key as keyof SOAPNote]);
 
   return (
     <div className="card p-5">
@@ -226,7 +226,7 @@ function NoteCard({ note, onEdit, onDelete }: { note: SOAPNote; onEdit: () => vo
                 <div key={key} className="rounded-lg p-3" style={{ background: bg, borderLeft: `3px solid ${color}` }}>
                   <p className="text-xs font-semibold mb-1" style={{ color }}>{label}</p>
                   <p className="text-xs whitespace-pre-wrap" style={{ color: "#334155" }}>
-                    {(note as Record<string, string | null>)[key]}
+                    {note[key as keyof SOAPNote] as string}
                   </p>
                 </div>
               ))}

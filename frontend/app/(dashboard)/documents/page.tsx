@@ -174,11 +174,11 @@ function DocumentCard({ doc }: { doc: Document }) {
                     <p className="text-sm leading-relaxed" style={{color:"#334155"}}>{summary.summary}</p>
                   )}
 
-                  {summary.key_findings?.length > 0 && (
+                  {(summary.key_findings?.length ?? 0) > 0 && (
                     <div>
                       <div className="section-label mb-2">Key findings</div>
                       <ul className="space-y-1.5">
-                        {summary.key_findings.map((f: string, i: number) => (
+                        {summary.key_findings!.map((f: string, i: number) => (
                           <li key={i} className="flex items-start gap-2 text-sm" style={{color:"#334155"}}>
                             <span className="w-1 h-1 rounded-full mt-2 flex-shrink-0" style={{background:"#0284c7"}}/>
                             {f}
@@ -188,13 +188,13 @@ function DocumentCard({ doc }: { doc: Document }) {
                     </div>
                   )}
 
-                  {summary.medications_found?.length > 0 && (
+                  {(summary.medications_found?.length ?? 0) > 0 && (
                     <div>
                       <div className="flex items-center gap-1.5 section-label mb-2">
                         <Pill className="w-3 h-3"/> Medications found
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        {summary.medications_found.map((m, i) => (
+                        {summary.medications_found!.map((m, i) => (
                           <span key={i} className="badge badge-pos">
                             {typeof m === "string" ? m : `${m.name}${m.dosage ? ` ${m.dosage}` : ""}`}
                           </span>
@@ -203,14 +203,14 @@ function DocumentCard({ doc }: { doc: Document }) {
                     </div>
                   )}
 
-                  {summary.recommended_actions?.length > 0 && (
+                  {(summary.recommended_actions?.length ?? 0) > 0 && (
                     <div>
                       <div className="flex items-center gap-1.5 section-label mb-2">
                         <AlertTriangle className="w-3 h-3" style={{color:"#d97706"}}/>
                         Recommended actions
                       </div>
                       <ul className="space-y-1.5">
-                        {summary.recommended_actions.map((a: string, i: number) => (
+                        {summary.recommended_actions!.map((a: string, i: number) => (
                           <li key={i} className="flex items-start gap-2 text-sm" style={{color:"#92400e"}}>
                             <span className="w-1 h-1 rounded-full mt-2 flex-shrink-0" style={{background:"#d97706"}}/>
                             {a}

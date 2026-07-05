@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Heart, Brain, Activity, Shield, Stethoscope, Pill, Microscope, BarChart2,
-  Eye, Ear, Baby, Users, Zap, Wind, Flame, Dna, ArrowRight, Search, X
+  Eye, Ear, Baby, Users, Zap, Wind, Flame, Dna, Droplets, ArrowRight, Search, X
 } from "lucide-react";
 
 interface Specialty {
@@ -106,18 +106,6 @@ const SPECIALTIES: Specialty[] = [
     aiCapabilities:["Growth curve analysis","Vaccine schedule tracking","Developmental milestone monitoring"],
   },
 ];
-
-function Droplets({ className, style }: { className?: string; style?: any }) {
-  return <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>;
-}
-
-function Dna({ className, style }: { className?: string; style?: any }) {
-  return <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 15c6.667-6 13.333 0 20-6"/><path d="M9 22c1.798-1.998 2.518-3.995 2.807-5.993"/><path d="M15 2c-1.798 1.998-2.518 3.995-2.807 5.993"/><path d="m17 6-2.5-2.5"/><path d="m14 8-1-1"/><path d="m7 18 2.5 2.5"/><path d="m3.5 14.5.5.5"/><path d="m20 9 .5.5"/><path d="m6.5 12.5 1 1"/><path d="m16.5 10.5 1 1"/><path d="m10 16 1.5 1.5"/></svg>;
-}
-
-function Baby({ className, style }: { className?: string; style?: any }) {
-  return <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12h.01"/><path d="M15 12h.01"/><path d="M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5"/><path d="M19 6.3a9 9 0 0 1 1.8 3.9 2 2 0 0 1 0 3.6 9 9 0 0 1-17.6 0 2 2 0 0 1 0-3.6A9 9 0 0 1 12 3c2 0 3.5 1.1 3.5 2.5s-.9 2.5-2 2.5c-.8 0-1.5-.4-1.5-1"/></svg>;
-}
 
 /* ── Specialty modal ─────────────────────────────────────────────────────── */
 function SpecialtyModal({ spec, onClose }: { spec: Specialty; onClose: () => void }) {

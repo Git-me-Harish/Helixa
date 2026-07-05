@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  User, Mail, Phone, Calendar, Droplets, Venus,
+  User, Mail, Phone, Calendar, Droplets, PersonStanding,
   MapPin, Lock, Save, Loader2, CheckCircle, AlertTriangle,
 } from "lucide-react";
 import api from "@/lib/api";
@@ -224,7 +224,7 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   <label className="label flex items-center gap-1.5">
-                    <Venus className="w-3.5 h-3.5" style={{color:"#94a3b8"}}/>
+                    <PersonStanding className="w-3.5 h-3.5" style={{color:"#94a3b8"}}/>
                     Gender
                   </label>
                   <select value={form.gender} onChange={patch("gender")} className={fieldCls()}>
