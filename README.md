@@ -1,4 +1,4 @@
-# Helixa — AI-Native Healthcare Intelligence Platform
+# Helixa AI-Native Healthcare Intelligence Platform
 
 Helixa is a full-stack, production-grade health management platform that combines a longitudinal patient record, clinical-grade AI agents, and real-world data sources (FDA, NPI registry) into a single cohesive system. It is designed and built to the standard of a defensible, real-world healthcare product.
 
