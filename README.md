@@ -316,4 +316,4 @@ Every AI response includes a mandatory disclaimer appended by the system prompt.
 
 ---
 
-*Helixa is a final-year engineering project. It is not a licensed medical device and should not be used to make clinical decisions.*
+*Helixa is a Innovative engineering work. It is not a licensed medical device and should not be used to make clinical decisions.*
