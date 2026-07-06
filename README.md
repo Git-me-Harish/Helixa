@@ -295,13 +295,13 @@ erDiagram
 
 ## Security Design
 
-- **Passwords** — bcrypt 12 rounds; enforced minimum complexity (letter + digit).
-- **Tokens** — 15-minute access tokens (JSON body) + 7-day refresh tokens (`httpOnly`, `SameSite=strict` cookie scoped to `/api/auth`). Token type claim prevents cross-use between access and refresh tokens.
-- **Auto-refresh** — Frontend Axios interceptor retries any 401 after refreshing once. A single in-flight promise prevents refresh storms from concurrent requests.
-- **Rate limits** — 5 requests/min on all auth endpoints; 10/min on file uploads.
-- **File uploads** — Magic-byte validation (first 16 bytes determine true file type, not client-supplied MIME). Streaming size check rejects files over the configured limit without buffering to disk first.
-- **Password reset** — `secrets.token_urlsafe(32)` tokens, 1-hour expiry, cleared immediately on use.
-- **CORS** — Explicit origin allowlist; credentials allowed only for listed origins.
+- **Passwords** : bcrypt 12 rounds; enforced minimum complexity (letter + digit).
+- **Tokens** : 15-minute access tokens (JSON body) + 7-day refresh tokens (`httpOnly`, `SameSite=strict` cookie scoped to `/api/auth`). Token type claim prevents cross-use between access and refresh tokens.
+- **Auto-refresh** : Frontend Axios interceptor retries any 401 after refreshing once. A single in-flight promise prevents refresh storms from concurrent requests.
+- **Rate limits** : 5 requests/min on all auth endpoints; 10/min on file uploads.
+- **File uploads** : Magic-byte validation (first 16 bytes determine true file type, not client-supplied MIME). Streaming size check rejects files over the configured limit without buffering to disk first.
+- **Password reset** : `secrets.token_urlsafe(32)` tokens, 1-hour expiry, cleared immediately on use.
+- **CORS** : Explicit origin allowlist; credentials allowed only for listed origins.
 
 ---
 
