@@ -1,5 +1,6 @@
 """Document upload, OCR processing, and analysis router."""
 
+import logging
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -10,9 +11,12 @@ from sqlalchemy import desc, select
 from app.config import settings
 from app.core.deps import CurrentUser, DbSession
 from app.core.limiter import limiter
+from app.database import AsyncSessionLocal
 from app.models.document import MedicalDocument, ProcessingStatus
 from app.schemas.document import DocumentResponse, DocumentStatusResponse
 from app.services import ai_service, nlp_service, ocr_service
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/documents", tags=["documents"])
 
@@ -105,8 +109,6 @@ async def upload_document(
 
 async def _process_document(doc_id: uuid.UUID, file_path: str) -> None:
     """Background task: OCR → NLP entities → AI summary → persist."""
-    from app.database import AsyncSessionLocal
-
     async with AsyncSessionLocal() as db:
         result = await db.execute(select(MedicalDocument).where(MedicalDocument.id == doc_id))
         doc = result.scalar_one_or_none()
@@ -208,7 +210,7 @@ async def delete_document(doc_id: uuid.UUID, current_user: CurrentUser, db: DbSe
     file_path = user_dir / doc.stored_filename
     try:
         file_path.unlink(missing_ok=True)
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.error("Failed to delete file %s: %s", file_path, exc, exc_info=True)
 
     await db.delete(doc)

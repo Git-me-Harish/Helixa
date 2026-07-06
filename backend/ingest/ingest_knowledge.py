@@ -7,8 +7,8 @@ Place medical PDF guidelines in backend/data/ then run:
 Documents are chunked, embedded with pubmedbert, and stored in local Qdrant.
 """
 
+import hashlib
 import sys
-import uuid
 from pathlib import Path
 
 # Add backend to path
@@ -21,17 +21,32 @@ CHUNK_SIZE = 700
 CHUNK_OVERLAP = 70
 
 
+def _stable_id(source: str, start: int) -> int:
+    """Deterministic Qdrant point ID derived from (source filename, chunk offset).
+
+    The previous implementation used `uuid.uuid4()` — a fresh random ID every
+    run. Re-running ingestion on the *same* PDFs (e.g. after a container
+    restart, or just running the script twice by habit) inserted duplicate
+    vectors for identical text instead of overwriting them, silently bloating
+    and degrading the knowledge base's retrieval quality over time. A
+    deterministic ID makes `upsert_chunks` idempotent: same source + same
+    offset → same point → overwrite, not duplicate.
+    """
+    digest = hashlib.sha256(f"{source}:{start}".encode("utf-8")).digest()
+    return int.from_bytes(digest[:8], "big")  # Qdrant requires uint64
+
+
 def chunk_text(text: str, source: str) -> list[dict]:
     """Split text into overlapping chunks."""
     chunks = []
     start = 0
     while start < len(text):
         end = start + CHUNK_SIZE
-        chunk_text = text[start:end]
-        if chunk_text.strip():
+        piece = text[start:end]
+        if piece.strip():
             chunks.append({
-                "id": uuid.uuid4().int & 0xFFFFFFFFFFFFFFFF,  # Qdrant needs uint64
-                "text": chunk_text,
+                "id": _stable_id(source, start),
+                "text": piece,
                 "source": source,
                 "page": 0,
             })

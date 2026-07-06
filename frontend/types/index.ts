@@ -102,6 +102,7 @@ export interface ChatMessage {
   model_used: string | null;
   extracted_entities: Record<string, unknown> | null;
   rag_sources: string[] | null;
+  rag_grounding: "grounded" | "no_match" | "unavailable" | null;
   created_at: string;
 }
 

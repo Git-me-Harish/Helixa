@@ -1,6 +1,7 @@
 """Appointments router with AI pre-appointment prep."""
 
 import uuid
+from datetime import datetime
 
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
@@ -41,7 +42,6 @@ class AppointmentResponse(BaseModel):
 
 @router.post("", response_model=AppointmentResponse, status_code=status.HTTP_201_CREATED)
 async def create_appointment(body: AppointmentCreate, current_user: CurrentUser, db: DbSession) -> AppointmentResponse:
-    from datetime import datetime
     try:
         apt_dt = datetime.fromisoformat(body.appointment_dt)
     except ValueError:

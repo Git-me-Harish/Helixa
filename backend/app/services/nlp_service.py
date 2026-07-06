@@ -1,6 +1,7 @@
 """Clinical NLP: scispaCy + medspaCy entity extraction and negation detection."""
 
 import logging
+import re
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -108,8 +109,6 @@ def extract_entities(text: str) -> dict[str, Any]:
 
 def _regex_fallback(text: str) -> dict[str, Any]:
     """Simple regex-based entity extraction when NLP stack isn't available."""
-    import re
-
     common_drugs = re.findall(
         r'\b(aspirin|ibuprofen|metformin|lisinopril|atorvastatin|omeprazole|amoxicillin|'
         r'paracetamol|acetaminophen|warfarin|metoprolol|amlodipine|losartan|simvastatin)\b',

@@ -44,6 +44,10 @@ class ChatMessage(Base):
     model_used: Mapped[str | None] = mapped_column(String(100), nullable=True)
     extracted_entities: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     rag_sources: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    # "grounded"   — chunks above score_threshold were injected into the prompt
+    # "no_match"   — KB is ready but nothing relevant matched this specific query
+    # "unavailable"— KB is empty/deps missing/broken; answer has zero guideline grounding
+    rag_grounding: Mapped[str | None] = mapped_column(String(20), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False, index=True
     )

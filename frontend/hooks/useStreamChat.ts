@@ -11,12 +11,14 @@ interface StreamEvent {
   model?: string;
   entities?: Record<string, unknown>;
   rag_sources?: string[];
+  rag_grounding?: "grounded" | "no_match" | "unavailable";
 }
 
 interface UseStreamChatReturn {
   streamMessage: (sessionId: string, message: string, onChunk: (text: string, model: string) => void) => Promise<{
     entities: Record<string, unknown> | null;
     rag_sources: string[];
+    rag_grounding: "grounded" | "no_match" | "unavailable" | null;
   }>;
   isStreaming: boolean;
   abort: () => void;
@@ -45,6 +47,7 @@ export function useStreamChat(): UseStreamChatReturn {
       setIsStreaming(true);
       let entities: Record<string, unknown> | null = null;
       let rag_sources: string[] = [];
+      let rag_grounding: "grounded" | "no_match" | "unavailable" | null = null;
 
       try {
         const response = await fetch(`${API_URL}/api/chat/sessions/${sessionId}/stream`, {
@@ -78,18 +81,20 @@ export function useStreamChat(): UseStreamChatReturn {
 
           for (const line of lines) {
             if (!line.startsWith("data: ")) continue;
+            let event: StreamEvent;
             try {
-              const event: StreamEvent = JSON.parse(line.slice(6));
-              if (event.type === "chunk" && event.content) {
-                onChunk(event.content, event.model || "unknown");
-              } else if (event.type === "done") {
-                entities = event.entities || null;
-                rag_sources = event.rag_sources || [];
-              } else if (event.type === "error") {
-                throw new Error(event.content);
-              }
-            } catch (parseErr) {
-              // malformed SSE line — skip
+              event = JSON.parse(line.slice(6));
+            } catch {
+              continue; // malformed SSE line — skip
+            }
+            if (event.type === "chunk" && event.content) {
+              onChunk(event.content, event.model || "unknown");
+            } else if (event.type === "done") {
+              entities = event.entities || null;
+              rag_sources = event.rag_sources || [];
+              rag_grounding = event.rag_grounding || null;
+            } else if (event.type === "error") {
+              throw new Error(event.content || "Stream error");
             }
           }
         }
@@ -97,7 +102,7 @@ export function useStreamChat(): UseStreamChatReturn {
         setIsStreaming(false);
       }
 
-      return { entities, rag_sources };
+      return { entities, rag_sources, rag_grounding };
     },
     [token]
   );

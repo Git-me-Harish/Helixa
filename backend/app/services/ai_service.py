@@ -236,8 +236,8 @@ Return ONLY valid JSON array."""
         result = json.loads(clean)
         if isinstance(result, list):
             return result[:3]
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("generate_health_insights: failed to parse AI response: %s", exc)
 
     return [
         {
