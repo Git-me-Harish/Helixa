@@ -8,7 +8,7 @@ from sqlalchemy import desc, select
 
 from app.core.deps import CurrentUser, DbSession
 from app.models.health_record import Medication, VitalSign
-from app.schemas.analytics import AnalyticsInsightsResponse, HealthScore, VitalTrendPoint
+from app.schemas.analytics import AIInsight, AnalyticsInsightsResponse, HealthScore, VitalTrendPoint
 from app.services.ai_service import generate_health_insights
 
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])
@@ -145,7 +145,6 @@ async def get_insights(
 
     insights_raw = await generate_health_insights(vitals_data, meds_data)
 
-    from app.schemas.analytics import AIInsight
     insights = [
         AIInsight(
             title=i.get("title", "Health Update"),

@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 
 class SessionCreate(BaseModel):
-    title: str = Field(default="New Conversation", max_length=255)
+    title: str = Field(default="New conversation", max_length=255)
 
 
 class SessionUpdate(BaseModel):
@@ -30,7 +30,8 @@ class MessageResponse(BaseModel):
     content: str
     model_used: str | None
     extracted_entities: dict | None
-    rag_sources: list | None
+    rag_sources: list[str] | None
+    rag_grounding: str | None
     created_at: datetime
 
     model_config = {"from_attributes": True}

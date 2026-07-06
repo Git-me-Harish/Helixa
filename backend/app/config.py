@@ -36,6 +36,8 @@ class Settings(BaseSettings):
     qdrant_path: str = "./qdrant_storage"
     qdrant_collection: str = "medical_knowledge"
     embedding_model: str = "NeuML/pubmedbert-base-embeddings"
+    rag_top_k: int = 3
+    rag_score_threshold: float = 0.65
 
     # CORS
     frontend_url: str = "http://localhost:3000"

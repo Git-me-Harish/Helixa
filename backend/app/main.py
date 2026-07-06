@@ -1,8 +1,10 @@
 """Helixa FastAPI application — entry point."""
 
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
+
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,6 +17,8 @@ from app.core.exceptions import register_exception_handlers
 from app.core.limiter import limiter
 from app.database import create_tables
 from app.routers import analytics, appointments, auth, chat, documents, extended_records, health_records, speech
+from app.services.nlp_service import _get_pipeline
+from app.services.rag_service import aget_status, get_status
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(name)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -37,17 +41,21 @@ async def lifespan(app: FastAPI):
 
     # Pre-warm NLP pipeline (optional — speeds up first request)
     try:
-        from app.services.nlp_service import _get_pipeline
         _get_pipeline()
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("NLP pipeline pre-warm failed (non-fatal): %s", exc)
 
-    # Pre-warm Qdrant client
+    # Pre-warm RAG subsystem off the event loop — SentenceTransformer loads
+    # ~400 MB synchronously; doing it here in a thread keeps the event loop
+    # responsive and makes readiness visible in the startup logs.
     try:
-        from app.services.rag_service import _get_client
-        _get_client()
-    except Exception:
-        pass
+        rag_state = await asyncio.to_thread(get_status)
+        if rag_state["ready"]:
+            logger.info("RAG knowledge base ready — %d vectors indexed", rag_state["vector_count"])
+        else:
+            logger.warning("RAG unavailable [%s]: %s", rag_state["state"], rag_state["detail"])
+    except Exception as exc:
+        logger.error("RAG status check failed at startup: %s", exc, exc_info=True)
 
     logger.info("Helixa ready on http://0.0.0.0:8000")
     yield
@@ -95,4 +103,12 @@ app.include_router(extended_records.router)
 
 @app.get("/api/health")
 async def health_check() -> dict:
-    return {"status": "healthy", "service": "helixa-api", "version": "1.0.0"}
+    return {
+        "status": "healthy",
+        "service": "helixa-api",
+        "version": "1.0.0",
+        "subsystems": {
+            "rag": await aget_status(),
+            "groq_configured": bool(settings.groq_api_key),
+        },
+    }

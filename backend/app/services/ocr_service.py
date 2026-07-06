@@ -1,6 +1,7 @@
 """OCR pipeline: EasyOCR for PDFs and images (Python 3.12 compatible)."""
 
 import logging
+import mimetypes
 import os
 import tempfile
 from pathlib import Path
@@ -117,6 +118,5 @@ def _extract_image(path: Path) -> dict[str, Any]:
 
 
 def _guess_mime(path: Path) -> str:
-    import mimetypes
     mime, _ = mimetypes.guess_type(str(path))
     return mime or "application/octet-stream"

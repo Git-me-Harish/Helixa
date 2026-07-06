@@ -207,13 +207,28 @@ async def stream_message(
 
     # Update session timestamp & auto-title on first message
     session.last_updated = datetime.now(timezone.utc)
-    if session.title == "New Conversation" and len(history) == 0:
+    if session.title == "New conversation" and len(history) == 0:
         session.title = body.message[:60] + ("..." if len(body.message) > 60 else "")
     await db.commit()
 
     # Build context
     health_ctx = await _get_health_context(current_user.id, db)
-    rag_chunks = rag_service.search(body.message, top_k=3)
+    # `asearch` offloads the blocking embedding + local-Qdrant call to a worker
+    # thread — the previous direct `search()` call ran synchronously on the
+    # event loop inside this async handler, serializing latency across every
+    # concurrent chat request.
+    rag_chunks = await rag_service.asearch(body.message)
+
+    # Distinguish *why* no reference chunks were injected, rather than
+    # collapsing "KB never ingested" and "nothing relevant to this question"
+    # into the same empty list. This label is what makes RAG's failure mode
+    # observable to the patient instead of silently degrading.
+    if rag_chunks:
+        rag_grounding = "grounded"
+    elif rag_service.is_initialized():
+        rag_grounding = "no_match"
+    else:
+        rag_grounding = "unavailable"
 
     async def event_generator():
         full_response = []
@@ -241,12 +256,13 @@ async def stream_message(
                 content=complete_text,
                 model_used=model_used,
                 extracted_entities=entities,
-                rag_sources=[{"source": c["source"], "score": c["score"]} for c in rag_chunks] if rag_chunks else None,
+                rag_sources=[c["source"] for c in rag_chunks] if rag_chunks else None,
+                rag_grounding=rag_grounding,
             )
             db.add(assistant_msg)
             await db.commit()
 
-        yield f"data: {json.dumps({'type': 'done', 'entities': entities, 'rag_sources': [c['source'] for c in rag_chunks]})}\n\n"
+        yield f"data: {json.dumps({'type': 'done', 'entities': entities, 'rag_sources': [c['source'] for c in rag_chunks], 'rag_grounding': rag_grounding})}\n\n"
 
     return StreamingResponse(
         event_generator(),

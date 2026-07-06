@@ -12,23 +12,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const { isAuthenticated, restoreSession } = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     restoreSession();
   }, [restoreSession]);
 
   useEffect(() => {
-    const token = typeof window !== "undefined" ? sessionStorage.getItem("helixa_token") : null;
+    if (!mounted) return;
+    const token = sessionStorage.getItem("helixa_token");
     if (!token && !isAuthenticated) router.replace("/login");
-  }, [isAuthenticated, router]);
+  }, [mounted, isAuthenticated, router]);
 
   // Auto-close mobile drawer on route change
   useEffect(() => {
     setDrawerOpen(false);
   }, [pathname]);
 
-  const token = typeof window !== "undefined" ? sessionStorage.getItem("helixa_token") : null;
-  if (!token && !isAuthenticated) {
+  // Before hydration completes, both server and client render the same
+  // loading state — prevents the "Expected <aside> in <div>" mismatch.
+  if (!mounted || (!isAuthenticated && !sessionStorage.getItem("helixa_token"))) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{background:"#f0f4f8"}}>
         <div className="flex flex-col items-center gap-3">

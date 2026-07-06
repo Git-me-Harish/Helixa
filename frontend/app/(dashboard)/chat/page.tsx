@@ -35,6 +35,50 @@ function ModelBadge({ model }: { model?: string | null }) {
   );
 }
 
+/* ── RAG grounding badge ────────────────────────────────────────────────── */
+// `rag_sources`/`rag_grounding` were already computed and streamed by the
+// backend but never rendered anywhere — this makes the AI's grounding state
+// visible instead of silently dropping it. "no_match" (KB is fine, nothing
+// relevant to this specific question) is the normal case and stays quiet;
+// "unavailable" (KB never ingested / broken) is the systemic failure mode
+// this needs to surface loudly.
+function RagBadge({
+  grounding,
+  sources,
+}: {
+  grounding?: ChatMessage["rag_grounding"];
+  sources?: string[] | null;
+}) {
+  if (!grounding || grounding === "no_match") return null;
+
+  if (grounding === "grounded" && sources?.length) {
+    const unique = Array.from(new Set(sources));
+    return (
+      <span
+        title={`Grounded in: ${unique.join(", ")}`}
+        className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded font-medium"
+        style={{ background: "#ecfdf5", border: "1px solid #a7f3d0", color: "#059669" }}
+      >
+        📚 {unique.length} reference {unique.length === 1 ? "source" : "sources"}
+      </span>
+    );
+  }
+
+  if (grounding === "unavailable") {
+    return (
+      <span
+        title="No clinical knowledge base is loaded — this answer relied on the model's general training only, with no guideline citations."
+        className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded font-medium"
+        style={{ background: "#fffbeb", border: "1px solid #fde68a", color: "#b45309" }}
+      >
+        ⚠ No guideline sources available
+      </span>
+    );
+  }
+
+  return null;
+}
+
 /* ── Entity badge ───────────────────────────────────────────────────────── */
 function EntityBadge({ entity, type }: { entity: string; type: string }) {
   const cfg: Record<string, { bg: string; border: string; color: string }> = {
@@ -127,6 +171,7 @@ function MessageBubble({
             {formatDateTime(message.created_at)}
           </span>
           {!isUser && <ModelBadge model={message.model_used} />}
+          {!isUser && <RagBadge grounding={message.rag_grounding} sources={message.rag_sources} />}
         </div>
 
         {entities && Object.entries(entities).some(([, v]) => v?.length) && (

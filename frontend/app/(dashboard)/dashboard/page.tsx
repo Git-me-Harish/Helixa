@@ -130,7 +130,7 @@ export default function DashboardPage() {
 
   const { data: summary, isLoading: summaryLoading } = useQuery<HealthSummary>({
     queryKey: QUERY_KEYS.healthSummary(),
-    queryFn: () => api.get("/api/health/summary").then(r => r.data),
+    queryFn: () => api.get("/api/records/summary").then(r => r.data),
   });
 
   const { data: healthScore } = useQuery<HealthScore>({
