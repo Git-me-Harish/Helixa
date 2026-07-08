@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { useAuthStore } from "@/store/auth.store";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -12,20 +11,33 @@ interface StreamEvent {
   entities?: Record<string, unknown>;
   rag_sources?: string[];
   rag_grounding?: "grounded" | "no_match" | "unavailable";
+  suggestions?: string[];
+}
+
+interface StreamResult {
+  entities: Record<string, unknown> | null;
+  rag_sources: string[];
+  rag_grounding: "grounded" | "no_match" | "unavailable" | null;
+  suggestions: string[];
+}
+
+export interface ImageAttachment {
+  data: string;       // full data URI: "data:image/jpeg;base64,..."
+  mediaType: string;  // "image/jpeg" | "image/png" | "image/webp"
 }
 
 interface UseStreamChatReturn {
-  streamMessage: (sessionId: string, message: string, onChunk: (text: string, model: string) => void) => Promise<{
-    entities: Record<string, unknown> | null;
-    rag_sources: string[];
-    rag_grounding: "grounded" | "no_match" | "unavailable" | null;
-  }>;
+  streamMessage: (
+    sessionId: string,
+    message: string,
+    onChunk: (text: string, model: string) => void,
+    image?: ImageAttachment | null,
+  ) => Promise<StreamResult>;
   isStreaming: boolean;
   abort: () => void;
 }
 
 export function useStreamChat(): UseStreamChatReturn {
-  const { token } = useAuthStore();
   const [isStreaming, setIsStreaming] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -38,8 +50,16 @@ export function useStreamChat(): UseStreamChatReturn {
     async (
       sessionId: string,
       message: string,
-      onChunk: (text: string, model: string) => void
-    ) => {
+      onChunk: (text: string, model: string) => void,
+      image?: ImageAttachment | null,
+    ): Promise<StreamResult> => {
+      // Read token at call time — not from closure — to always get the current value
+      // even when restoreSession() hasn't finished hydrating the Zustand store yet.
+      const token =
+        typeof window !== "undefined"
+          ? sessionStorage.getItem("helixa_token")
+          : null;
+
       abortRef.current?.abort();
       const controller = new AbortController();
       abortRef.current = controller;
@@ -48,15 +68,20 @@ export function useStreamChat(): UseStreamChatReturn {
       let entities: Record<string, unknown> | null = null;
       let rag_sources: string[] = [];
       let rag_grounding: "grounded" | "no_match" | "unavailable" | null = null;
+      let suggestions: string[] = [];
 
       try {
         const response = await fetch(`${API_URL}/api/chat/sessions/${sessionId}/stream`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
-          body: JSON.stringify({ message, session_id: sessionId }),
+          body: JSON.stringify({
+            message,
+            session_id: sessionId,
+            ...(image ? { image_data: image.data, image_media_type: image.mediaType } : {}),
+          }),
           signal: controller.signal,
           credentials: "include",
         });
@@ -85,7 +110,7 @@ export function useStreamChat(): UseStreamChatReturn {
             try {
               event = JSON.parse(line.slice(6));
             } catch {
-              continue; // malformed SSE line — skip
+              continue;
             }
             if (event.type === "chunk" && event.content) {
               onChunk(event.content, event.model || "unknown");
@@ -93,6 +118,7 @@ export function useStreamChat(): UseStreamChatReturn {
               entities = event.entities || null;
               rag_sources = event.rag_sources || [];
               rag_grounding = event.rag_grounding || null;
+              suggestions = event.suggestions || [];
             } else if (event.type === "error") {
               throw new Error(event.content || "Stream error");
             }
@@ -102,9 +128,9 @@ export function useStreamChat(): UseStreamChatReturn {
         setIsStreaming(false);
       }
 
-      return { entities, rag_sources, rag_grounding };
+      return { entities, rag_sources, rag_grounding, suggestions };
     },
-    [token]
+    [] // token is read from sessionStorage inside the callback at call-time, not a closure dep
   );
 
   return { streamMessage, isStreaming, abort };

@@ -28,6 +28,7 @@ class MessageResponse(BaseModel):
     session_id: uuid.UUID
     role: str
     content: str
+    image_data: str | None = None  # base64 data URI, present on user messages with an image
     model_used: str | None
     extracted_entities: dict | None
     rag_sources: list[str] | None
@@ -38,8 +39,11 @@ class MessageResponse(BaseModel):
 
 
 class ChatRequest(BaseModel):
-    message: str = Field(min_length=1, max_length=8000)
+    message: str = Field(default="", max_length=8000)
     session_id: uuid.UUID | None = None
+    # Vision: base64-encoded image data URI (e.g. "data:image/jpeg;base64,...")
+    image_data: str | None = Field(default=None, max_length=8_000_000)  # ~6 MB image cap
+    image_media_type: str | None = None  # "image/jpeg" | "image/png" | "image/webp"
 
 
 class SessionDetail(BaseModel):

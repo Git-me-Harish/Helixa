@@ -11,30 +11,30 @@ export default {
     extend: {
       colors: {
         brand: {
-          DEFAULT: "#0284c7",
-          light:   "#e0f2fe",
-          dark:    "#0369a1",
-          mid:     "#38bdf8",
+          DEFAULT: "#9D93C1",
+          light:   "#EDEBF2",
+          dark:    "#7C6FA0",
+          mid:     "#B3AAD0",
         },
         teal: {
-          DEFAULT: "#0d9488",
-          light:   "#ccfbf1",
+          DEFAULT: "#6F5F98",
+          light:   "#E4E0EE",
         },
         surface: {
-          bg:      "#f0f4f8",
+          bg:      "#EDEBF2",
           card:    "#ffffff",
-          subtle:  "#f8fafc",
-          muted:   "#f1f5f9",
+          subtle:  "#F7F6FA",
+          muted:   "#EFEDF4",
         },
         ink: {
-          DEFAULT:   "#0f172a",
-          secondary: "#334155",
-          muted:     "#64748b",
-          faint:     "#94a3b8",
+          DEFAULT:   "#2A2830",
+          secondary: "#4A4750",
+          muted:     "#636262",
+          faint:     "#8B8894",
         },
         border: {
-          DEFAULT: "#e2e8f0",
-          strong:  "#cbd5e1",
+          DEFAULT: "#E3E0EA",
+          strong:  "#CBC5D9",
         },
         positive: { DEFAULT: "#059669", bg: "#ecfdf5", border: "#a7f3d0" },
         warning:  { DEFAULT: "#d97706", bg: "#fffbeb", border: "#fde68a" },
@@ -42,8 +42,8 @@ export default {
         info:     { DEFAULT: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" },
       },
       fontFamily: {
-        sans:     ["Inter", "system-ui", "-apple-system", "sans-serif"],
-        display:  ["Plus Jakarta Sans", "Inter", "sans-serif"],
+        sans:     ["Manrope", "system-ui", "-apple-system", "sans-serif"],
+        display:  ["Manrope", "system-ui", "sans-serif"],
       },
       fontSize: {
         "2xs": ["10px",  { lineHeight: "14px" }],
@@ -82,7 +82,7 @@ export default {
         md:   "0 10px 15px -3px rgba(15,23,42,.08), 0 4px 6px -2px rgba(15,23,42,.04)",
         lg:   "0 20px 25px -5px rgba(15,23,42,.10), 0 10px 10px -5px rgba(15,23,42,.04)",
         xl:   "0 25px 50px -12px rgba(15,23,42,.20)",
-        brand:"0 4px 14px rgba(2,132,199,.3)",
+        brand:"0 4px 14px rgba(157,147,193,.35)",
       },
       animation: {
         "fade-up":   "fadeUp .5s cubic-bezier(.16,1,.3,1) both",

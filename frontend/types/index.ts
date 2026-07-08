@@ -99,6 +99,7 @@ export interface ChatMessage {
   session_id: string;
   role: "user" | "assistant";
   content: string;
+  image_data: string | null;  // base64 data URI; present on user messages that included an image
   model_used: string | null;
   extracted_entities: Record<string, unknown> | null;
   rag_sources: string[] | null;
@@ -161,7 +162,43 @@ export interface AIInsight {
   category: string;
 }
 
-/* ── Doctors (NPI Registry) ──────────────────────────────────────────────── */
+/* ── Doctors (OpenStreetMap / Overpass API — India) ─────────────────────── */
+
+/** Tags on an OSM element that are relevant to healthcare facilities */
+export interface OSMTags {
+  name?: string;
+  "name:en"?: string;
+  amenity?: string;
+  healthcare?: string;
+  "healthcare:speciality"?: string;
+  specialty?: string;
+  operator?: string;
+  "addr:housenumber"?: string;
+  "addr:street"?: string;
+  "addr:city"?: string;
+  "addr:district"?: string;
+  "addr:state"?: string;
+  "addr:postcode"?: string;
+  phone?: string;
+  "contact:phone"?: string;
+  website?: string;
+  opening_hours?: string;
+  emergency?: string;
+  beds?: string;
+  [key: string]: string | undefined;
+}
+
+/** A single result element from the Overpass API */
+export interface IndiaDoctor {
+  id: number;
+  type: "node" | "way" | "relation";
+  lat?: number;
+  lon?: number;
+  center?: { lat: number; lon: number };
+  tags: OSMTags;
+}
+
+// Keep NPIDoctor alias for legacy references (unused after doctors page rewrite)
 export interface NPIAddress {
   address_1: string;
   address_2?: string;
@@ -171,26 +208,10 @@ export interface NPIAddress {
   telephone_number?: string;
   address_purpose?: string;
 }
-
-export interface NPITaxonomy {
-  code: string;
-  desc: string;
-  primary: boolean;
-  state?: string;
-  license?: string;
-}
-
+export interface NPITaxonomy { code: string; desc: string; primary: boolean; state?: string; license?: string; }
 export interface NPIDoctor {
   number: string;
-  basic: {
-    first_name?: string;
-    last_name?: string;
-    middle_name?: string;
-    credential?: string;
-    gender?: string;
-    sole_proprietor?: string;
-    organization_name?: string;
-  };
+  basic: { first_name?: string; last_name?: string; middle_name?: string; credential?: string; gender?: string; sole_proprietor?: string; organization_name?: string; };
   addresses: NPIAddress[];
   taxonomies: NPITaxonomy[];
 }

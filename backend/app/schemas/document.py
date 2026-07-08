@@ -27,3 +27,5 @@ class DocumentStatusResponse(BaseModel):
     processing_status: str
     processing_error: str | None
     processed_at: datetime | None
+
+    model_config = {"from_attributes": True}

@@ -41,6 +41,7 @@ class ChatMessage(Base):
 
     role: Mapped[str] = mapped_column(String(20), nullable=False)  # 'user' | 'assistant'
     content: Mapped[str] = mapped_column(Text, nullable=False)
+    image_data: Mapped[str | None] = mapped_column(Text, nullable=True)  # base64 data URI for user image messages
     model_used: Mapped[str | None] = mapped_column(String(100), nullable=True)
     extracted_entities: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     rag_sources: Mapped[list | None] = mapped_column(JSON, nullable=True)

@@ -44,6 +44,8 @@ export const QUERY_KEYS = {
   // Discovery
   npiDoctors: (name: string, specialty: string, state: string) =>
     ["npi-doctors", name, specialty, state] as const,
+  indiaDoctors: (name: string, specialty: string, city: string) =>
+    ["india-doctors", name, specialty, city] as const,
   drugs:          (query: string) => ["drugs", query] as const,
   drugInteraction:(a: string, b: string) => ["drug-interaction", a, b] as const,
 } as const;

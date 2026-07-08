@@ -31,21 +31,44 @@ def _get_ollama() -> httpx.AsyncClient:
     return _ollama_client
 
 
+_VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
+
 def _build_messages(
     history: list[dict[str, str]],
     user_message: str,
     health_context: dict[str, Any] | None = None,
     rag_chunks: list[dict[str, Any]] | None = None,
-) -> list[dict[str, str]]:
+    image_data: str | None = None,
+    image_media_type: str | None = None,
+) -> list[dict]:
     system_parts = [MEDICAL_SYSTEM_PROMPT]
     if health_context:
         system_parts.append(build_context_message(health_context))
     if rag_chunks:
         system_parts.append(build_rag_context(rag_chunks))
 
-    messages = [{"role": "system", "content": "\n\n".join(system_parts)}]
-    messages.extend(history[-10:])  # cap context window
-    messages.append({"role": "user", "content": user_message})
+    messages: list[dict] = [{"role": "system", "content": "\n\n".join(system_parts)}]
+    messages.extend(history[-10:])
+
+    if image_data and image_media_type:
+        # Strip the data URI prefix if present — Groq wants raw base64
+        raw_b64 = image_data.split(",", 1)[-1] if "," in image_data else image_data
+        text = user_message or "Please analyze this medical image and describe any clinically relevant findings."
+        messages.append({
+            "role": "user",
+            "content": [
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:{image_media_type};base64,{raw_b64}",
+                    },
+                },
+                {"type": "text", "text": text},
+            ],
+        })
+    else:
+        messages.append({"role": "user", "content": user_message})
+
     return messages
 
 
@@ -54,53 +77,93 @@ async def stream_chat(
     user_message: str,
     health_context: dict[str, Any] | None = None,
     rag_chunks: list[dict[str, Any]] | None = None,
+    image_data: str | None = None,
+    image_media_type: str | None = None,
 ) -> AsyncIterator[tuple[str, str]]:
-    """Yields (chunk_text, model_name) tuples. Falls back to Ollama on Groq failure."""
-    messages = _build_messages(history, user_message, health_context, rag_chunks)
+    """Yields (chunk_text, model_name) tuples. Falls back to Ollama, then a static message."""
+    has_image = bool(image_data and image_media_type)
+    messages = _build_messages(history, user_message, health_context, rag_chunks, image_data, image_media_type)
 
-    # Try Groq first
+    # --- Try Groq (vision model when image present, chat model otherwise) ---
+    groq_yielded = False
     try:
-        async for chunk, model in _stream_groq(messages):
+        async for chunk, model in _stream_groq(messages, vision=has_image):
+            groq_yielded = True
             yield chunk, model
         return
-    except (RateLimitError, APIStatusError) as exc:
-        logger.warning("Groq failed (%s), falling back to Ollama", exc)
     except Exception as exc:
-        logger.error("Groq unexpected error: %s", exc)
+        if groq_yielded:
+            logger.error("Groq failed mid-stream after yielding content: %s", exc)
+            return
+        logger.warning("Groq unavailable (%s), trying Ollama fallback", exc)
 
-    # Ollama fallback
-    async for chunk, model in _stream_ollama(messages):
-        yield chunk, model
+    # Vision requests can't fall back to Ollama (no multimodal support in meditron)
+    if has_image:
+        yield (
+            "I'm sorry, I couldn't process the image right now — the vision AI service is temporarily unavailable. "
+            "Please try again in a moment."
+        ), "unavailable"
+        return
+
+    # --- Try Ollama (text-only fallback) ---
+    ollama_yielded = False
+    try:
+        async for chunk, model in _stream_ollama(messages):
+            ollama_yielded = True
+            yield chunk, model
+        return
+    except Exception as exc:
+        if ollama_yielded:
+            logger.error("Ollama failed mid-stream after yielding content: %s", exc)
+            return
+        logger.error("Ollama also unavailable (%s) — all AI providers failed", exc)
+
+    yield (
+        "I'm sorry, I'm temporarily unable to respond — the AI service is unavailable right now. "
+        "Please make sure the backend is running and your API key is configured, then try again."
+    ), "unavailable"
 
 
-async def _stream_groq(messages: list[dict]) -> AsyncIterator[tuple[str, str]]:
+async def _stream_groq(messages: list[dict], vision: bool = False) -> AsyncIterator[tuple[str, str]]:
     client = _get_groq()
-    model_name = settings.groq_model
+
+    # Vision requests must use the vision-capable model; no fallback to smaller model
+    if vision:
+        stream = await client.chat.completions.create(
+            model=_VISION_MODEL, messages=messages, stream=True, temperature=0.3, max_tokens=2048,
+        )
+        async for chunk in stream:
+            delta = chunk.choices[0].delta.content
+            if delta:
+                yield delta, f"groq/{_VISION_MODEL}"
+        return
+
+    primary = settings.groq_model
+    fallback = settings.groq_fallback_model
+
+    # Try primary model
     try:
         stream = await client.chat.completions.create(
-            model=model_name,
-            messages=messages,
-            stream=True,
-            temperature=0.3,
-            max_tokens=2048,
+            model=primary, messages=messages, stream=True, temperature=0.3, max_tokens=2048,
         )
         async for chunk in stream:
             delta = chunk.choices[0].delta.content
             if delta:
-                yield delta, f"groq/{model_name}"
+                yield delta, f"groq/{primary}"
+        return
     except RateLimitError:
-        # Try the smaller fallback Groq model before giving up
-        stream = await client.chat.completions.create(
-            model=settings.groq_fallback_model,
-            messages=messages,
-            stream=True,
-            temperature=0.3,
-            max_tokens=2048,
-        )
-        async for chunk in stream:
-            delta = chunk.choices[0].delta.content
-            if delta:
-                yield delta, f"groq/{settings.groq_fallback_model}"
+        logger.warning("Groq primary model rate-limited, trying fallback model %s", fallback)
+    except (APIStatusError, Exception) as exc:
+        logger.warning("Groq primary model failed (%s), trying fallback model %s", exc, fallback)
+
+    # Try smaller fallback Groq model
+    stream = await client.chat.completions.create(
+        model=fallback, messages=messages, stream=True, temperature=0.3, max_tokens=2048,
+    )
+    async for chunk in stream:
+        delta = chunk.choices[0].delta.content
+        if delta:
+            yield delta, f"groq/{fallback}"
 
 
 async def _stream_ollama(messages: list[dict]) -> AsyncIterator[tuple[str, str]]:
@@ -127,36 +190,52 @@ async def _stream_ollama(messages: list[dict]) -> AsyncIterator[tuple[str, str]]
 
 
 async def complete_text(prompt: str, max_tokens: int = 1024) -> str:
-    """Non-streaming completion for document summarization and insights."""
+    """Non-streaming completion. Tries Groq primary → Groq fallback → Ollama → empty string."""
     messages = [
         {"role": "system", "content": MEDICAL_SYSTEM_PROMPT},
         {"role": "user", "content": prompt},
     ]
+    # Try Groq primary
     try:
         client = _get_groq()
         response = await client.chat.completions.create(
-            model=settings.groq_model,
-            messages=messages,
-            temperature=0.2,
-            max_tokens=max_tokens,
+            model=settings.groq_model, messages=messages, temperature=0.2, max_tokens=max_tokens,
+        )
+        return response.choices[0].message.content or ""
+    except RateLimitError:
+        logger.warning("Groq primary rate-limited for complete_text, trying fallback model")
+    except Exception as exc:
+        logger.error("Groq primary complete_text failed: %s, trying fallback model", exc)
+
+    # Try Groq fallback model
+    try:
+        client = _get_groq()
+        response = await client.chat.completions.create(
+            model=settings.groq_fallback_model, messages=messages, temperature=0.2, max_tokens=max_tokens,
         )
         return response.choices[0].message.content or ""
     except Exception as exc:
-        logger.error("Groq complete_text failed: %s, trying Ollama", exc)
-        return await _ollama_complete(messages, max_tokens)
+        logger.error("Groq fallback complete_text failed: %s, trying Ollama", exc)
+
+    # Try Ollama
+    return await _ollama_complete(messages, max_tokens)
 
 
 async def _ollama_complete(messages: list[dict], max_tokens: int) -> str:
-    client = _get_ollama()
-    payload = {
-        "model": settings.ollama_medical_model,
-        "messages": messages,
-        "stream": False,
-        "options": {"temperature": 0.2, "num_predict": max_tokens},
-    }
-    response = await client.post("/api/chat", json=payload)
-    response.raise_for_status()
-    return response.json().get("message", {}).get("content", "")
+    try:
+        client = _get_ollama()
+        payload = {
+            "model": settings.ollama_medical_model,
+            "messages": messages,
+            "stream": False,
+            "options": {"temperature": 0.2, "num_predict": max_tokens},
+        }
+        response = await client.post("/api/chat", json=payload)
+        response.raise_for_status()
+        return response.json().get("message", {}).get("content", "")
+    except Exception as exc:
+        logger.error("Ollama complete_text also failed: %s — returning empty string", exc)
+        return ""
 
 
 async def summarize_document(ocr_text: str, entities: dict[str, Any]) -> dict[str, Any]:
@@ -247,6 +326,30 @@ Return ONLY valid JSON array."""
             "category": "vitals",
         }
     ]
+
+
+async def generate_followup_suggestions(user_message: str, ai_response: str) -> list[str]:
+    """Generate 3 short follow-up question suggestions based on the conversation turn."""
+    prompt = f"""Based on this health Q&A exchange, generate exactly 3 short follow-up questions the patient might want to ask next. Keep each under 10 words.
+
+Patient asked: {user_message[:300]}
+Assistant answered: {ai_response[:500]}
+
+Return ONLY a JSON array of 3 strings. No explanation, no markdown."""
+
+    raw = await complete_text(prompt, max_tokens=150)
+    try:
+        clean = raw.strip()
+        if clean.startswith("```"):
+            clean = clean.split("```")[1]
+            if clean.startswith("json"):
+                clean = clean[4:]
+        result = json.loads(clean)
+        if isinstance(result, list):
+            return [str(s) for s in result[:3]]
+    except Exception:
+        pass
+    return []
 
 
 async def generate_appointment_prep(health_summary: dict[str, Any], appointment_notes: str) -> str:
