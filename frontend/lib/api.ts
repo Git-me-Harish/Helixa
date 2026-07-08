@@ -8,13 +8,18 @@ export const api: AxiosInstance = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// Inject access token from memory on every request
+// Inject access token on every request.
+// For FormData bodies, delete the default Content-Type so the browser sets it
+// automatically with the correct multipart/form-data boundary.
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (typeof window !== "undefined") {
     const token = sessionStorage.getItem("helixa_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+  }
+  if (config.data instanceof FormData) {
+    delete config.headers["Content-Type"];
   }
   return config;
 });

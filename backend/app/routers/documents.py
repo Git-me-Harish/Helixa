@@ -54,18 +54,15 @@ async def upload_document(
     db: DbSession,
     background_tasks: BackgroundTasks,
 ) -> DocumentStatusResponse:
-    # --- Sprint 2 #9: streaming size check (abort before full buffer) ---
-    content_chunks: list[bytes] = []
-    total = 0
-    async for chunk in file:
-        total += len(chunk)
-        if total > MAX_SIZE_BYTES:
-            raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                detail=f"File exceeds {settings.max_upload_size_mb} MB limit",
-            )
-        content_chunks.append(chunk)
-    content = b"".join(content_chunks)
+    # Read the entire upload into memory then enforce the size cap.
+    # UploadFile.read() is the correct async API; async-for iteration was
+    # removed from UploadFile in Starlette 0.21+.
+    content = await file.read()
+    if len(content) > MAX_SIZE_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f"File exceeds {settings.max_upload_size_mb} MB limit",
+        )
 
     # --- Sprint 2 #6: magic-bytes validation (client content_type is spoofable) ---
     detected_mime = _detect_mime(content[:_CHUNK])

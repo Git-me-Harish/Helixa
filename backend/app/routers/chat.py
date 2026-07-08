@@ -1,8 +1,12 @@
 """AI chat router with SSE streaming, session management, entity extraction."""
 
+import asyncio
 import json
+import logging
 import uuid
 from datetime import datetime, timezone
+
+logger = logging.getLogger(__name__)
 
 from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import StreamingResponse
@@ -159,8 +163,16 @@ async def update_session(
     if session is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
     session.title = body.title
-    await db.flush()
-    return SessionResponse.model_validate(session)
+    await db.commit()
+    await db.refresh(session)
+    return SessionResponse(
+        id=session.id,
+        title=session.title,
+        is_archived=session.is_archived,
+        created_at=session.created_at,
+        last_updated=session.last_updated,
+        message_count=0,
+    )
 
 
 @router.delete("/sessions/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -200,24 +212,31 @@ async def stream_message(
     history_rows = list(reversed(hist_result.scalars().all()))
     history = [{"role": m.role, "content": m.content} for m in history_rows]
 
-    # Save user message
-    user_msg = ChatMessage(session_id=session_id, role="user", content=body.message)
+    # Require at least a message or an image
+    if not body.message.strip() and not body.image_data:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Message or image is required")
+
+    # Save user message — persist both text and image so history is fully restorable
+    display_message = body.message or "[Image attached]"
+    user_msg = ChatMessage(
+        session_id=session_id,
+        role="user",
+        content=display_message,
+        image_data=body.image_data,  # stored as base64 data URI; None for text-only messages
+    )
     db.add(user_msg)
     await db.flush()
 
     # Update session timestamp & auto-title on first message
     session.last_updated = datetime.now(timezone.utc)
     if session.title == "New conversation" and len(history) == 0:
-        session.title = body.message[:60] + ("..." if len(body.message) > 60 else "")
+        title_src = body.message or "Image analysis"
+        session.title = title_src[:60] + ("..." if len(title_src) > 60 else "")
     await db.commit()
 
     # Build context
     health_ctx = await _get_health_context(current_user.id, db)
-    # `asearch` offloads the blocking embedding + local-Qdrant call to a worker
-    # thread — the previous direct `search()` call ran synchronously on the
-    # event loop inside this async handler, serializing latency across every
-    # concurrent chat request.
-    rag_chunks = await rag_service.asearch(body.message)
+    rag_chunks = await rag_service.asearch(body.message) if body.message.strip() else []
 
     # Distinguish *why* no reference chunks were injected, rather than
     # collapsing "KB never ingested" and "nothing relevant to this question"
@@ -236,7 +255,9 @@ async def stream_message(
 
         try:
             async for chunk, model_name in ai_service.stream_chat(
-                history, body.message, health_ctx, rag_chunks
+                history, body.message, health_ctx, rag_chunks,
+                image_data=body.image_data,
+                image_media_type=body.image_media_type,
             ):
                 full_response.append(chunk)
                 model_used = model_name
@@ -245,15 +266,22 @@ async def stream_message(
             yield f"data: {json.dumps({'type': 'error', 'content': str(exc)})}\n\n"
             return
 
-        # Persist assistant message with entities
-        complete_text = "".join(full_response)
-        entities = nlp_service.extract_entities(complete_text)
+        # Persist assistant message with entities, generate suggestions concurrently
+        full_text = "".join(full_response)
+        try:
+            entities, suggestions = await asyncio.gather(
+                asyncio.to_thread(nlp_service.extract_entities, full_text),
+                ai_service.generate_followup_suggestions(display_message, full_text),
+            )
+        except Exception as exc:
+            logger.warning("Post-stream processing failed: %s", exc)
+            entities, suggestions = {}, []
 
         async with db:
             assistant_msg = ChatMessage(
                 session_id=session_id,
                 role="assistant",
-                content=complete_text,
+                content=full_text,
                 model_used=model_used,
                 extracted_entities=entities,
                 rag_sources=[c["source"] for c in rag_chunks] if rag_chunks else None,
@@ -262,7 +290,7 @@ async def stream_message(
             db.add(assistant_msg)
             await db.commit()
 
-        yield f"data: {json.dumps({'type': 'done', 'entities': entities, 'rag_sources': [c['source'] for c in rag_chunks], 'rag_grounding': rag_grounding})}\n\n"
+        yield f"data: {json.dumps({'type': 'done', 'entities': entities, 'rag_sources': [c['source'] for c in rag_chunks], 'rag_grounding': rag_grounding, 'suggestions': suggestions})}\n\n"
 
     return StreamingResponse(
         event_generator(),
